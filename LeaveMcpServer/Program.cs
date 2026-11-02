@@ -21,6 +21,8 @@ public static class LeaveRequestTool
     public static int GetLeaveRecordAmount(
         [Description("要查詢請假天數的員工名稱")] string employeeName)
     {
+        McpToolInvocationLogger.Log(nameof(GetLeaveRecordAmount));
+
         if (string.IsNullOrWhiteSpace(employeeName))
             throw new ArgumentException("員工名稱不可為空白。", nameof(employeeName));
 
@@ -40,6 +42,8 @@ public static class LeaveRequestTool
         [Description("代理人")] string 代理人,
         [Description("請假者姓名")] string 請假者姓名)
     {
+        McpToolInvocationLogger.Log(nameof(LeaveRequest));
+
         if (string.IsNullOrWhiteSpace(請假起始日期)
             || string.IsNullOrWhiteSpace(請假事由)
             || string.IsNullOrWhiteSpace(代理人)
@@ -63,7 +67,31 @@ public static class LeaveRequestTool
     [McpServerTool(Name = nameof(GetCurrentDate)), Description("取得今天日期，時區為台灣（UTC+8）")]
     public static string GetCurrentDate()
     {
+        McpToolInvocationLogger.Log(nameof(GetCurrentDate));
+
         return DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(8))
             .ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);
+    }
+}
+
+public static class McpToolInvocationLogger
+{
+    private static readonly object ConsoleLock = new();
+
+    public static void Log(string toolName)
+    {
+        lock (ConsoleLock)
+        {
+            var originalColor = Console.ForegroundColor;
+            try
+            {
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.WriteLine($"[MCP Tool Called] {toolName}");
+            }
+            finally
+            {
+                Console.ForegroundColor = originalColor;
+            }
+        }
     }
 }
